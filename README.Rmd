@@ -1,0 +1,131 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# hueR
+
+<!-- badges: start -->
+[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
+<!-- badges: end -->
+
+hueR lets you create colour palettes based on two variables: 
+variable `a` defining the hue, and variable `b` defining the shades of that hue.
+
+This is intended for grouped categorical data, where values of `b` 
+represent subcategories of the values of `a`.
+
+
+## Installation
+
+You can install the latest development version of hueR with:
+
+``` r
+devtools::install_github("david-barnett/hueR")
+```
+
+## Example
+
+```{r example}
+library(hueR)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r fig.height=8, fig.width=10, dpi=300}
+# sort countries, within continents, by average population
+sortedSummary <- gapminder::gapminder %>%
+  group_by(continent, country) %>%
+  summarise(AvPop = mean(pop, na.rm = TRUE), .groups = "keep") %>%
+  group_by(continent) %>%
+  arrange(.by_group = TRUE, desc(AvPop))
+
+# create palettes
+countryPal7 <- sortedSummary %>%
+  hueGroupPal(group = "continent", shade = "country", maxShades = 7)
+
+# plot population per year
+gapminder::gapminder %>%
+  ggplot(aes(
+    x = factor(year), y = pop,
+    # setting as factor with levels in correct order ensures ordering of bars
+    fill = factor(country, levels = names(countryPal7))
+  )) +
+  geom_col() +
+  guides(fill = "none") +
+  # setting manual scale of course sets correct colours
+  scale_fill_manual(values = countryPal7) +
+  ggfittext::geom_fit_text(
+    aes(ymin = 0, ymax = pop, label = country),
+    position = "stack", colour = "white"
+  ) +
+  theme_classic() +
+  coord_cartesian(expand = FALSE)
+```
+
+
+```{r fig.height=8, fig.width=10, dpi=300}
+# plot population per year as share of world total that year
+gapminder::gapminder %>%
+  group_by(year) %>%
+  mutate(popPerc = pop/sum(pop, na.rm = TRUE)) %>%
+  ggplot(aes(
+    x = factor(year), y = popPerc,
+    # setting as factor with levels in correct order ensures ordering of bars
+    fill = factor(country, levels = names(countryPal7))
+  )) +
+  geom_col() +
+  guides(fill = "none") +
+  # setting manual scale of course sets correct colours
+  scale_fill_manual(values = countryPal7) +
+  ggfittext::geom_fit_text(
+    aes(ymin = 0, ymax = popPerc, label = country),
+    position = "stack", colour = "white"
+  ) +
+  theme_classic() +
+  coord_cartesian(expand = FALSE)
+```
+
+
+```{r fig.height=8, fig.width=10, dpi=300}
+# plot with modified palette
+countryPal7alt <- sortedSummary %>%
+  hueGroupPal(group = "continent", shade = "country", maxShades = 7,
+              hues = hueSet(start = 0))
+
+gapminder::gapminder %>%
+  group_by(year) %>%
+  mutate(popPerc = pop/sum(pop, na.rm = TRUE)) %>%
+  ggplot(aes(
+    x = factor(year), y = popPerc,
+    # setting as factor with levels in correct order ensures ordering of bars
+    fill = factor(country, levels = names(countryPal7alt))
+  )) +
+  geom_col() +
+  guides(fill = "none") +
+  # setting manual scale of course sets correct colours
+  scale_fill_manual(values = countryPal7alt) +
+  ggfittext::geom_fit_text(grow = TRUE,
+                           aes(ymin = 0, ymax = popPerc, label = country),
+                           position = "stack", colour = "white"
+  ) +
+  theme_classic() +
+  coord_cartesian(expand = FALSE)
+```
+
+## Session info
+
+```{r}
+devtools::session_info()
+```
+

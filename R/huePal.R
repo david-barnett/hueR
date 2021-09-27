@@ -34,10 +34,18 @@
 #' @export
 #'
 #' @examples
-#' huePal(hue = 120, names = letters[1:9]) %>%
-#'    scales::show_col(borders = NA)
+#' pal <- huePal(hue = 120, n = 9)
+#' scales::show_col(pal, borders = NA)
 #
+#  # named palette
+#  huePal(hue = 120, names = letters[1:9])
+#
+#  # same palettes, just named and not named (all should be TRUE)
 #' huePal(hue = 120, names = letters[1:9]) == huePal(hue = 120, n = 9)
+#'
+#' # more names than shades --> repeats last shade
+#' extendedPal <- huePal(hue = 120, names = letters[1:16], n = 9)
+#' scales::show_col(extendedPal, borders = NA)
 huePal <- function(hue = NULL,
                    names = NULL,
                    n = NULL,
